@@ -22,12 +22,14 @@ const EditExpense = () => {
         setLoading(true);
 
         // Get cars
-        const carRes = await axios.get("http://localhost:5000/api/cars");
+        const carRes = await axios.get(
+          "https://uss-car-manager-f0gv.onrender.com/api/cars"
+        );
         setCars(carRes.data);
 
         // Get expense details
         const expRes = await axios.get(
-          `http://localhost:5000/api/expenses/${id}`
+          `https://uss-car-manager-f0gv.onrender.com/api/expenses/${id}`
         );
         const exp = expRes.data;
 
@@ -62,13 +64,16 @@ const EditExpense = () => {
     const finalCategory = category === "Others" ? customCategory : category;
 
     try {
-      await axios.put(`http://localhost:5000/api/expenses/${id}`, {
-        car,
-        date,
-        category: finalCategory,
-        amount,
-        notes,
-      });
+      await axios.put(
+        `https://uss-car-manager-f0gv.onrender.com/api/expenses/${id}`,
+        {
+          car,
+          date,
+          category: finalCategory,
+          amount,
+          notes,
+        }
+      );
 
       navigate(`/expenses/${car}`);
     } catch (err) {

@@ -48,7 +48,10 @@ const AddCar = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await axios.post("http://localhost:5000/api/cars", car);
+      await axios.post(
+        "https://uss-car-manager-f0gv.onrender.com/api/cars",
+        car
+      );
       navigate("/");
     } catch (err) {
       console.error(err);

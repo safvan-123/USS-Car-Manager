@@ -19,7 +19,9 @@ const EditCar = () => {
   useEffect(() => {
     const fetchCar = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/cars/${id}`);
+        const res = await axios.get(
+          `https://uss-car-manager-f0gv.onrender.com/api/cars/${id}`
+        );
         setCar(res.data);
       } catch (err) {
         console.error("Error fetching car:", err);
@@ -61,7 +63,10 @@ const EditCar = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/cars/${id}`, car);
+      await axios.put(
+        `https://uss-car-manager-f0gv.onrender.com/api/cars/${id}`,
+        car
+      );
       navigate("/");
     } catch (err) {
       console.error("Error updating car:", err);

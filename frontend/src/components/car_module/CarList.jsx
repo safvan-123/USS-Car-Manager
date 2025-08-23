@@ -1,113 +1,3 @@
-// import { useEffect, useState } from "react";
-// import { Link } from "react-router-dom";
-// import axios from "axios";
-
-// const CarList = () => {
-//   const [cars, setCars] = useState([]);
-
-//   useEffect(() => {
-//     fetchCars();
-//   }, []);
-
-//   const fetchCars = async () => {
-//     try {
-//       const res = await axios.get("http://localhost:5000/api/cars");
-//       setCars(res.data);
-//     } catch (err) {
-//       console.error(err);
-//     }
-//   };
-
-//   const deleteCar = async (id) => {
-//     if (window.confirm("Are you sure you want to delete this car?")) {
-//       try {
-//         await axios.delete(`http://localhost:5000/api/cars/${id}`);
-//         fetchCars();
-//       } catch (err) {
-//         console.error(err);
-//       }
-//     }
-//   };
-
-//   return (
-//     <div className="container mt-4">
-//       <h2 className="mb-4 text-center fw-bold">🚗 My Cars</h2>
-//       <div className="row">
-//         {cars.map((car) => (
-//           <div className="col-md-4 mb-4" key={car._id}>
-//             <div className="card h-100 shadow-lg border-0 rounded-3 hover-card">
-//               {car.image && (
-//                 <img
-//                   src={car.image}
-//                   alt={car.carName}
-//                   className="card-img-top"
-//                   style={{ height: "200px", objectFit: "cover" }}
-//                 />
-//               )}
-//               <div className="card-body d-flex flex-column">
-//                 <h5 className="fw-bold text-primary">{car.carName}</h5>
-//                 <p className="mb-1">
-//                   <b>Number:</b> {car.carNumber}
-//                 </p>
-//                 <p className="mb-1">
-//                   <b>Model:</b> {car.model}
-//                 </p>
-//                 <p className="mb-3">
-//                   <b>Owner:</b> {car.owner}
-//                 </p>
-
-//                 <div className="mt-auto">
-//                   <div className="btn-group w-100">
-//                     <Link
-//                       to={`/expenses/${car._id}`}
-//                       className="btn btn-outline-success btn-sm"
-//                     >
-//                       💰 View Total Expense
-//                     </Link>
-//                     <Link
-//                       to={`/edit/${car._id}`}
-//                       className="btn btn-outline-primary btn-sm"
-//                     >
-//                       ✏️ Edit
-//                     </Link>
-//                     <button
-//                       onClick={() => deleteCar(car._id)}
-//                       className="btn btn-outline-danger btn-sm"
-//                     >
-//                       🗑️ Delete
-//                     </button>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         ))}
-
-//         {cars.length === 0 && (
-//           <div className="text-center mt-5">
-//             <p className="text-muted">No cars found. Please add one 🚘</p>
-//           </div>
-//         )}
-//       </div>
-
-//       {/* Extra CSS for hover effect */}
-//       <style>
-//         {`
-//           .hover-card {
-//             transition: transform 0.2s ease, box-shadow 0.2s ease;
-//           }
-//           .hover-card:hover {
-//             transform: translateY(-5px);
-//             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-//           }
-//         `}
-//       </style>
-//     </div>
-//   );
-// };
-
-// export default CarList;
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -121,7 +11,9 @@ const CarList = () => {
 
   const fetchCars = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/cars");
+      const res = await axios.get(
+        "https://uss-car-manager-f0gv.onrender.com/api/cars"
+      );
       setCars(res.data);
     } catch (err) {
       console.error(err);
@@ -131,7 +23,9 @@ const CarList = () => {
   const deleteCar = async (id) => {
     if (window.confirm("Are you sure you want to delete this car?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/cars/${id}`);
+        await axios.delete(
+          `https://uss-car-manager-f0gv.onrender.com/api/cars/${id}`
+        );
         fetchCars();
       } catch (err) {
         console.error(err);
