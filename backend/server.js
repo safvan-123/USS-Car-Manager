@@ -30,7 +30,7 @@ const app = express();
 // CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173"], // allow your frontend origin
+    origin: ["http://localhost:5173", "https://uss-car-manager.vercel.app/"], // allow your frontend origin
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // if you use cookies/auth
   })
