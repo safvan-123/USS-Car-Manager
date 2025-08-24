@@ -22,6 +22,8 @@ const getEarnings = async (req, res) => {
 
 // Get earnings for a specific car
 const getEarningsByCar = async (req, res) => {
+  console.log(req.params.carId);
+
   try {
     const earnings = await Earning.find({ car: req.params.carId }).populate(
       "car"

@@ -2,7 +2,6 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const earningRoutes = require("./routes/earningRoutes");
 dotenv.config();
 connectDB();
 
@@ -34,7 +33,7 @@ app.use(express.json());
 // Routes
 app.use("/api/cars", require("./routes/carRoutes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
-app.use("/api/earnings", earningRoutes);
+app.use("/api/earnings", require("./routes/earningRoutes"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
