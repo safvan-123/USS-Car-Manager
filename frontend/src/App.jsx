@@ -5,6 +5,11 @@ import EditCar from "./components/car_module/EditCar";
 import ExpenseList from "./components/expenses/ExpenseList";
 import AddExpense from "./components/expenses/AddExpense";
 import EditExpense from "./components/expenses/EditExpense";
+import AddEarning from "./components/earnings/AddEarning";
+import EarningList from "./components/earnings/EarningList";
+import EditEarning from "./components/earnings/EditEarning";
+import CarDetail from "./components/car_module/CarDetail";
+import CarSummary from "./components/car_module/CarSummary";
 
 function App() {
   return (
@@ -70,6 +75,12 @@ function App() {
               >
                 💰 Add Expense
               </Link>
+              <Link
+                to="/add-earning"
+                className="btn btn-light shadow-sm px-3 rounded-pill"
+              >
+                📈 Add Earning
+              </Link>
             </div>
           </div>
         </div>
@@ -84,6 +95,11 @@ function App() {
           <Route path="/expenses/:carId" element={<ExpenseList />} />
           <Route path="/add-expense" element={<AddExpense />} />
           <Route path="/edit-expense/:id" element={<EditExpense />} />
+          <Route path="/add-earning" element={<AddEarning />} />
+          <Route path="/earnings/:carId" element={<EarningList />} />
+          <Route path="/edit-earning/:id" element={<EditEarning />} />
+          <Route path="/car/:id" element={<CarDetail />} />
+          <Route path="/summary/:carId" element={<CarSummary />} />
         </Routes>
       </div>
     </Router>

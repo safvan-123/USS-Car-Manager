@@ -198,11 +198,17 @@ const CarList = () => {
                 </div>
 
                 <div className="card-footer d-flex gap-2 bg-white border-0 flex-wrap justify-content-center">
-                  <Link
+                  {/* <Link
                     to={`/expenses/${car._id}`}
                     className="btn btn-outline-success flex-fill rounded-pill"
                   >
                     💰 View Expenses
+                  </Link> */}
+                  <Link
+                    to={`/car/${car._id}`}
+                    className="btn btn-outline-info flex-fill rounded-pill"
+                  >
+                    📋 Details
                   </Link>
                   <Link
                     to={`/edit/${car._id}`}

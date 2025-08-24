@@ -155,7 +155,7 @@ export default function ExpenseList() {
   return (
     <div className="container my-4">
       {/* Header */}
-      <div
+      {/* <div
         className="card shadow-lg border-0 text-center text-white mb-4"
         style={{
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -187,6 +187,63 @@ export default function ExpenseList() {
               <i className="bi bi-plus-lg me-2"></i>Add New Expense
             </Link>
           </div>
+        </div>
+      </div> */}
+      <div
+        className="card shadow-sm border-0 text-center text-white mb-3 expenses-card"
+        style={{
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          borderRadius: "16px",
+        }}
+      >
+        <div className="card-body p-3 p-md-4">
+          {/* Title */}
+          <h4 className="fw-bold mb-1 d-md-none" style={{ fontSize: "1.1rem" }}>
+            <i className="bi bi-car-front-fill me-1"></i> Expenses
+          </h4>
+          <h3 className="fw-bold mb-2 d-none d-md-block">
+            <i className="bi bi-car-front-fill me-2"></i> Car Expenses Dashboard
+          </h3>
+
+          {/* Subtitle */}
+          <p
+            className="opacity-75 mb-3 d-none d-md-block"
+            style={{ fontSize: "0.95rem" }}
+          >
+            Track and manage all your vehicle-related expenses
+          </p>
+          <p
+            className="opacity-75 mb-3 d-md-none"
+            style={{ fontSize: "0.85rem" }}
+          >
+            Manage your car expenses
+          </p>
+
+          {/* Expenses Box */}
+          <div
+            className="p-2 p-md-3 rounded-3 mx-auto mb-3"
+            style={{
+              background: "linear-gradient(135deg, #4e54c8, #8f94fb)",
+              minWidth: "160px",
+              maxWidth: "260px",
+            }}
+          >
+            <h6 className="mb-1" style={{ fontSize: "0.9rem" }}>
+              Total
+            </h6>
+            <h4 className="fw-bold mb-0 fs-md-2">
+              ₹{totalAmount.toLocaleString()}
+            </h4>
+          </div>
+
+          {/* Button */}
+          <Link
+            to="/add-expense"
+            className="btn btn-light shadow-sm w-100 w-md-auto rounded-pill px-4 py-2"
+            style={{ fontSize: "0.9rem" }}
+          >
+            <i className="bi bi-plus-lg me-1"></i> Add Expense
+          </Link>
         </div>
       </div>
 
