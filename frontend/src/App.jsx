@@ -10,6 +10,9 @@ import EarningList from "./components/earnings/EarningList";
 import EditEarning from "./components/earnings/EditEarning";
 import CarDetail from "./components/car_module/CarDetail";
 import CarSummary from "./components/car_module/CarSummary";
+import AddPartner from "./components/partners/AddPartner";
+import PartnerList from "./components/partners/PartnerList";
+import EditPartner from "./components/partners/EditPartner";
 
 function App() {
   return (
@@ -52,35 +55,108 @@ function App() {
             className="collapse navbar-collapse justify-content-end"
             id="navbarMenu"
           >
-            <div className="navbar-nav gap-2 mt-2 mt-lg-0">
-              <Link
-                to="/"
-                className="btn btn-light shadow-sm rounded-pill d-flex align-items-center justify-content-center px-3"
-              >
-                <span className="me-2" style={{ marginTop: "-8px" }}>
-                  🚗
-                </span>
-                View Cars
-              </Link>
+            <div className="navbar-nav gap-2 mt-2 mt-lg-0 d-flex flex-column flex-lg-row align-items-stretch">
+              {/* 🚗 Cars Dropdown */}
+              <div className="dropdown w-100 w-lg-auto">
+                <button
+                  className="btn btn-light shadow-sm rounded-pill d-flex align-items-center justify-content-center px-3 dropdown-toggle w-100"
+                  id="carsDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <span className="me-2">🚗</span> Cars
+                </button>
+                <ul
+                  className="dropdown-menu border-0 shadow-lg rounded-4 p-2 animate__animated animate__fadeIn"
+                  aria-labelledby="carsDropdown"
+                  style={{ minWidth: "220px" }}
+                >
+                  <li>
+                    <Link
+                      to="/"
+                      className="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2"
+                    >
+                      📋 View Cars
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/add"
+                      className="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2"
+                    >
+                      ➕ Add Car
+                    </Link>
+                  </li>
+                </ul>
+              </div>
 
-              <Link
-                to="/add"
-                className="btn btn-light shadow-sm px-3 rounded-pill"
-              >
-                + Add Car
-              </Link>
-              <Link
-                to="/add-expense"
-                className="btn btn-light shadow-sm px-3 rounded-pill"
-              >
-                💰 Add Expense
-              </Link>
-              <Link
-                to="/add-earning"
-                className="btn btn-light shadow-sm px-3 rounded-pill"
-              >
-                📈 Add Earning
-              </Link>
+              {/* 💰 Finance Dropdown */}
+              <div className="dropdown w-100 w-lg-auto">
+                <button
+                  className="btn btn-light shadow-sm rounded-pill d-flex align-items-center justify-content-center px-3 dropdown-toggle w-100"
+                  id="financeDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <span className="me-2">💰</span> Finance
+                </button>
+                <ul
+                  className="dropdown-menu border-0 shadow-lg rounded-4 p-2 animate__animated animate__fadeIn"
+                  aria-labelledby="financeDropdown"
+                  style={{ minWidth: "220px" }}
+                >
+                  <li>
+                    <Link
+                      to="/add-earning"
+                      className="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2"
+                    >
+                      📈 Earnings Entry
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/add-expense"
+                      className="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2"
+                    >
+                      💸 Expenses Entry
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 👥 Partners Dropdown */}
+              <div className="dropdown w-100 w-lg-auto">
+                <button
+                  className="btn btn-light shadow-sm rounded-pill d-flex align-items-center justify-content-center px-3 dropdown-toggle w-100"
+                  id="partnersDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <span className="me-2">👥</span> Partners
+                </button>
+                <ul
+                  className="dropdown-menu border-0 shadow-lg rounded-4 p-2 animate__animated animate__fadeIn"
+                  aria-labelledby="partnersDropdown"
+                  style={{ minWidth: "220px" }}
+                >
+                  <li>
+                    <Link
+                      to="/partners"
+                      className="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2"
+                    >
+                      📋 View Partners
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/add-partner"
+                      className="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2"
+                    >
+                      ➕ Add Partner
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -100,6 +176,9 @@ function App() {
           <Route path="/edit-earning/:id" element={<EditEarning />} />
           <Route path="/car/:id" element={<CarDetail />} />
           <Route path="/summary/:carId" element={<CarSummary />} />
+          <Route path="/add-partner" element={<AddPartner />} />
+          <Route path="/partners" element={<PartnerList />} />
+          <Route path="/edit-partner/:id" element={<EditPartner />} />
         </Routes>
       </div>
     </Router>
