@@ -34,6 +34,7 @@ app.use(express.json());
 app.use("/api/cars", require("./routes/carRoutes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
 app.use("/api/earnings", require("./routes/earningRoutes"));
+app.use("/api/partners", require("./routes/partnerRoutes"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
