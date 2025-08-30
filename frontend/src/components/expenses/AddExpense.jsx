@@ -4,24 +4,27 @@ import axios from "axios";
 
 const AddExpense = () => {
   const [cars, setCars] = useState([]);
+  const [partners, setPartners] = useState([]);
   const [expense, setExpense] = useState({
     car: "",
+    title: "",
+    type: "expense",
     date: "",
     category: "",
     customCategory: "",
-    amount: "",
+    totalAmount: "",
     notes: "",
+    partners: [],
   });
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
+  // fetch cars initially
   useEffect(() => {
     const fetchCars = async () => {
       try {
-        const res = await axios.get(
-          "https://uss-car-manager-f0gv.onrender.com/api/cars"
-        );
-        setCars(res.data);
+        const carsRes = await axios.get("http://localhost:5000/api/cars");
+        setCars(carsRes.data);
       } catch (err) {
         console.error("Error fetching cars:", err);
       }
@@ -29,8 +32,56 @@ const AddExpense = () => {
     fetchCars();
   }, []);
 
+  // fetch partners when car is selected
+  useEffect(() => {
+    const fetchPartners = async () => {
+      if (!expense.car) return;
+      try {
+        const partnersRes = await axios.get(
+          `http://localhost:5000/api/partners/car/${expense.car}`
+        );
+        console.log(partnersRes);
+
+        const partnerState = partnersRes.data.map((p) => ({
+          partnerId: p._id,
+          name: p.name,
+          sharePercentage: p.sharePercentage,
+          amount: 0,
+          paid: false,
+        }));
+        setPartners(partnerState);
+        setExpense((prev) => ({ ...prev, partners: partnerState }));
+      } catch (err) {
+        console.error("Error fetching partners:", err);
+      }
+    };
+    fetchPartners();
+  }, [expense.car]);
+
   const handleChange = (e) => {
-    setExpense({ ...expense, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "totalAmount") {
+      const total = Number(value) || 0;
+      const updatedPartners = expense.partners.map((p) => {
+        const percentage = p.sharePercentage || 0;
+        const calculatedAmount = ((total * percentage) / 100).toFixed(2);
+        return { ...p, amount: calculatedAmount };
+      });
+      setExpense({ ...expense, totalAmount: value, partners: updatedPartners });
+    } else {
+      setExpense({ ...expense, [name]: value });
+    }
+  };
+
+  const handlePartnerChange = (index, field, value) => {
+    const updatedPartners = [...expense.partners];
+    if (field === "paid") {
+      updatedPartners[index][field] = value.target.checked;
+    } else {
+      updatedPartners[index][field] = value;
+    }
+    setExpense({ ...expense, partners: updatedPartners });
   };
 
   const handleSubmit = async (e) => {
@@ -40,16 +91,20 @@ const AddExpense = () => {
       expense.category === "Others" ? expense.customCategory : expense.category;
 
     try {
-      await axios.post(
-        "https://uss-car-manager-f0gv.onrender.com/api/expenses",
-        {
-          car: expense.car,
-          date: expense.date,
-          category: finalCategory,
-          amount: expense.amount,
-          notes: expense.notes,
-        }
-      );
+      await axios.post("http://localhost:5000/api/expenses", {
+        car: expense.car,
+        title: expense.title,
+        type: expense.type,
+        date: expense.date,
+        category: finalCategory,
+        totalAmount: expense.totalAmount,
+        notes: expense.notes,
+        partners: expense.partners.map((p) => ({
+          partnerId: p.partnerId,
+          amount: Number(p.amount) || 0,
+          paid: p.paid,
+        })),
+      });
       navigate(`/expenses/${expense.car}`);
     } catch (err) {
       console.error("Error adding expense:", err);
@@ -90,15 +145,12 @@ const AddExpense = () => {
         </div>
       </div>
 
-      {/* Main Form Card */}
+      {/* Main Form */}
       <div className="row justify-content-center">
         <div className="col-xl-8 col-lg-10 col-12">
           <div
             className="card border-0 shadow-lg"
-            style={{
-              borderRadius: "18px",
-              animation: "fadeUp 0.4s ease-out",
-            }}
+            style={{ borderRadius: "18px", animation: "fadeUp 0.4s ease-out" }}
           >
             <div
               className="card-header border-0 text-center"
@@ -107,22 +159,9 @@ const AddExpense = () => {
                 borderRadius: "18px 18px 0 0",
               }}
             >
-              {/* <div
-                className="bg-white rounded-circle d-inline-flex align-items-center justify-content-center shadow"
-                style={{ width: "70px", height: "70px", marginTop: "15px" }}
-              >
-                <i
-                  className="bi bi-receipt fs-3"
-                  style={{ color: "#667eea" }}
-                ></i>
-              </div> */}
               <div
                 className="bg-white rounded-circle d-inline-flex align-items-center justify-content-center shadow"
-                style={{
-                  width: "70px",
-                  height: "70px",
-                  marginTop: "15px",
-                }}
+                style={{ width: "70px", height: "70px", marginTop: "15px" }}
               >
                 <i
                   className="bi bi-receipt fs-3"
@@ -134,7 +173,7 @@ const AddExpense = () => {
             <div className="card-body p-4">
               <form onSubmit={handleSubmit}>
                 <div className="row g-4">
-                  {/* Car Select */}
+                  {/* Car */}
                   <div className="col-md-6 col-12">
                     <label className="form-label fw-semibold">
                       <i className="bi bi-car-front-fill me-2 text-primary"></i>
@@ -146,12 +185,6 @@ const AddExpense = () => {
                       value={expense.car}
                       onChange={handleChange}
                       required
-                      style={{
-                        borderColor: "#e0e7ff",
-                        transition: "all 0.3s ease",
-                      }}
-                      onFocus={(e) => (e.target.style.borderColor = "#667eea")}
-                      onBlur={(e) => (e.target.style.borderColor = "#e0e7ff")}
                     >
                       <option value="">-- Select Car --</option>
                       {cars.map((c) => (
@@ -160,6 +193,22 @@ const AddExpense = () => {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Title */}
+                  <div className="col-md-6 col-12">
+                    <label className="form-label fw-semibold">
+                      <i className="bi bi-pencil-square me-2 text-primary"></i>
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      className="form-control rounded-pill shadow-sm border-2"
+                      value={expense.title}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
 
                   {/* Date */}
@@ -175,12 +224,6 @@ const AddExpense = () => {
                       value={expense.date}
                       onChange={handleChange}
                       required
-                      style={{
-                        borderColor: "#e0e7ff",
-                        transition: "all 0.3s ease",
-                      }}
-                      onFocus={(e) => (e.target.style.borderColor = "#667eea")}
-                      onBlur={(e) => (e.target.style.borderColor = "#e0e7ff")}
                     />
                   </div>
 
@@ -195,12 +238,6 @@ const AddExpense = () => {
                       value={expense.category}
                       onChange={handleChange}
                       required
-                      style={{
-                        borderColor: "#e0e7ff",
-                        transition: "all 0.3s ease",
-                      }}
-                      onFocus={(e) => (e.target.style.borderColor = "#667eea")}
-                      onBlur={(e) => (e.target.style.borderColor = "#e0e7ff")}
                     >
                       <option value="">-- Select Category --</option>
                       <option value="Fuel">Fuel</option>
@@ -225,37 +262,23 @@ const AddExpense = () => {
                         value={expense.customCategory}
                         onChange={handleChange}
                         required
-                        style={{
-                          borderColor: "#e0e7ff",
-                          transition: "all 0.3s ease",
-                        }}
-                        onFocus={(e) =>
-                          (e.target.style.borderColor = "#667eea")
-                        }
-                        onBlur={(e) => (e.target.style.borderColor = "#e0e7ff")}
                       />
                     </div>
                   )}
 
-                  {/* Amount */}
+                  {/* Total */}
                   <div className="col-md-6 col-12">
                     <label className="form-label fw-semibold">
                       <i className="bi bi-currency-dollar me-2 text-primary"></i>
-                      Amount
+                      Total Amount
                     </label>
                     <input
                       type="number"
-                      name="amount"
+                      name="totalAmount"
                       className="form-control rounded-pill shadow-sm border-2"
-                      value={expense.amount}
+                      value={expense.totalAmount}
                       onChange={handleChange}
                       required
-                      style={{
-                        borderColor: "#e0e7ff",
-                        transition: "all 0.3s ease",
-                      }}
-                      onFocus={(e) => (e.target.style.borderColor = "#667eea")}
-                      onBlur={(e) => (e.target.style.borderColor = "#e0e7ff")}
                     />
                   </div>
 
@@ -270,81 +293,60 @@ const AddExpense = () => {
                       className="form-control rounded-pill shadow-sm border-2"
                       value={expense.notes}
                       onChange={handleChange}
-                      style={{
-                        borderColor: "#e0e7ff",
-                        transition: "all 0.3s ease",
-                      }}
-                      onFocus={(e) => (e.target.style.borderColor = "#667eea")}
-                      onBlur={(e) => (e.target.style.borderColor = "#e0e7ff")}
                     />
                   </div>
 
-                  {/* Progress Summary */}
-                  {(expense.car ||
-                    expense.date ||
-                    expense.category ||
-                    expense.amount ||
-                    expense.notes) && (
-                    <div className="col-12">
-                      <div
-                        className="card border-0 shadow-sm"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
-                          borderRadius: "15px",
-                        }}
-                      >
-                        <div className="card-body p-3">
-                          <h6 className="fw-bold text-primary mb-2">
-                            <i className="bi bi-list-check me-2"></i>Form
-                            Progress
-                          </h6>
-                          <div className="row g-2">
-                            {expense.car && (
-                              <div className="col-6">
-                                <small className="text-success">
-                                  <i className="bi bi-check-circle-fill me-1"></i>
-                                  Car Selected
-                                </small>
-                              </div>
-                            )}
-                            {expense.date && (
-                              <div className="col-6">
-                                <small className="text-success">
-                                  <i className="bi bi-check-circle-fill me-1"></i>
-                                  Date Set
-                                </small>
-                              </div>
-                            )}
-                            {expense.category && (
-                              <div className="col-6">
-                                <small className="text-success">
-                                  <i className="bi bi-check-circle-fill me-1"></i>
-                                  Category Chosen
-                                </small>
-                              </div>
-                            )}
-                            {expense.amount && (
-                              <div className="col-6">
-                                <small className="text-success">
-                                  <i className="bi bi-check-circle-fill me-1"></i>
-                                  Amount Entered
-                                </small>
-                              </div>
-                            )}
-                            {expense.notes && (
-                              <div className="col-12">
-                                <small className="text-success">
-                                  <i className="bi bi-check-circle-fill me-1"></i>
-                                  Notes Added
-                                </small>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                  {/* Partner-wise */}
+                  <div className="col-12">
+                    <h5 className="fw-bold text-primary mt-3 mb-2">
+                      <i className="bi bi-people-fill me-2"></i>Partner
+                      Contributions
+                    </h5>
+                    <div className="table-responsive">
+                      <table className="table table-bordered text-center align-middle">
+                        <thead className="table-light">
+                          <tr>
+                            <th>Partner</th>
+                            <th>Share %</th>
+                            <th>Amount</th>
+                            <th>Paid?</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {expense.partners.map((p, index) => (
+                            <tr key={p.partnerId}>
+                              <td>{p.name}</td>
+                              <td>{p.sharePercentage}%</td>
+                              <td style={{ width: "150px" }}>
+                                <input
+                                  type="number"
+                                  className="form-control rounded-pill"
+                                  value={p.amount}
+                                  onChange={(e) =>
+                                    handlePartnerChange(
+                                      index,
+                                      "amount",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  checked={p.paid}
+                                  onChange={(e) =>
+                                    handlePartnerChange(index, "paid", e)
+                                  }
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  )}
+                  </div>
 
                   {/* Buttons */}
                   <div className="col-12 mt-3 d-grid gap-2">
@@ -359,7 +361,6 @@ const AddExpense = () => {
                           : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                         border: "none",
                         padding: "12px 0",
-                        transition: "all 0.3s ease",
                       }}
                       disabled={saving}
                     >
@@ -368,9 +369,7 @@ const AddExpense = () => {
                           <span
                             className="spinner-border spinner-border-sm me-2"
                             role="status"
-                          >
-                            <span className="visually-hidden">Loading...</span>
-                          </span>
+                          ></span>
                           Saving Expense...
                         </>
                       ) : (
@@ -393,24 +392,6 @@ const AddExpense = () => {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .form-control:focus {
-          box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
-        }
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3) !important;
-        }
-        .card:hover {
-          transform: translateY(-2px);
-          transition: transform 0.3s ease;
-        }
-      `}</style>
     </div>
   );
 };

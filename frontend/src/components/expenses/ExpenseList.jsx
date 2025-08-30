@@ -22,11 +22,17 @@ export default function ExpenseList() {
       try {
         setLoading(true);
         const res = await axios.get(
-          `https://uss-car-manager-f0gv.onrender.com/api/expenses/car/${carId}`
+          `http://localhost:5000/api/expenses/car/${carId}`
         );
+
         setExpenses(res.data);
         setFilteredExpenses(res.data);
-        const total = res.data.reduce((sum, exp) => sum + exp.amount, 0);
+
+        // ✅ Handle both old (amount) and new (totalAmount)
+        const total = res.data.reduce(
+          (sum, exp) => sum + (exp.totalAmount || exp.amount || 0),
+          0
+        );
         setTotalAmount(total);
       } catch (err) {
         console.error("Error fetching expenses:", err);
@@ -74,7 +80,14 @@ export default function ExpenseList() {
     }
 
     setFilteredExpenses(filtered);
-    setTotalAmount(filtered.reduce((sum, exp) => sum + exp.amount, 0));
+
+    // ✅ Recalculate total for filtered results
+    setTotalAmount(
+      filtered.reduce(
+        (sum, exp) => sum + (exp.totalAmount || exp.amount || 0),
+        0
+      )
+    );
   }, [categoryFilter, dateFilter, dateRange, expenses]);
 
   // Delete Expense
@@ -93,9 +106,7 @@ export default function ExpenseList() {
 
     try {
       setDeleting(expenseId);
-      await axios.delete(
-        `https://uss-car-manager-f0gv.onrender.com/api/expenses/${expenseId}`
-      );
+      await axios.delete(`http://localhost:5000/api/expenses/${expenseId}`);
       const updatedExpenses = expenses.filter((exp) => exp._id !== expenseId);
       setExpenses(updatedExpenses);
       Swal.fire("Deleted!", "Expense has been deleted.", "success");
@@ -110,13 +121,10 @@ export default function ExpenseList() {
   const getCategoryIcon = (category) => {
     const icons = {
       fuel: "bi-fuel-pump-fill",
-      maintenance: "bi-wrench",
+      service: "bi-wrench",
       insurance: "bi-shield-fill-check",
-      repair: "bi-hammer",
-      parking: "bi-p-square-fill",
-      toll: "bi-coin",
-      cleaning: "bi-droplet-fill",
-      other: "bi-three-dots",
+      tax: "bi-cash-coin",
+      others: "bi-three-dots",
     };
     return icons[category?.toLowerCase()] || "bi-receipt";
   };
@@ -124,13 +132,10 @@ export default function ExpenseList() {
   const getCategoryGradient = (category) => {
     const gradients = {
       fuel: "linear-gradient(135deg, #FF6B35, #F7931E)",
-      maintenance: "linear-gradient(135deg, #4ECDC4, #44A08D)",
+      service: "linear-gradient(135deg, #4ECDC4, #44A08D)",
       insurance: "linear-gradient(135deg, #45B7D1, #96C93D)",
-      repair: "linear-gradient(135deg, #F7931E, #FF6B35)",
-      parking: "linear-gradient(135deg, #96CEB4, #FFECD2)",
-      toll: "linear-gradient(135deg, #FECA57, #FF9A9E)",
-      cleaning: "linear-gradient(135deg, #48CAE4, #007EA7)",
-      other: "linear-gradient(135deg, #6C5CE7, #A777E3)",
+      tax: "linear-gradient(135deg, #FECA57, #FF9A9E)",
+      others: "linear-gradient(135deg, #6C5CE7, #A777E3)",
     };
     return (
       gradients[category?.toLowerCase()] ||
@@ -155,40 +160,6 @@ export default function ExpenseList() {
   return (
     <div className="container my-4">
       {/* Header */}
-      {/* <div
-        className="card shadow-lg border-0 text-center text-white mb-4"
-        style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          borderRadius: "20px",
-        }}
-      >
-        <div className="card-body p-4">
-          <h2 className="fw-bold mb-2">
-            <i className="bi bi-car-front-fill me-2"></i>Car Expenses Dashboard
-          </h2>
-          <p className="opacity-75">
-            Track and manage all your vehicle-related expenses
-          </p>
-          <div
-            className="p-3 rounded-3 d-inline-block"
-            style={{
-              background: "linear-gradient(135deg, #4e54c8, #8f94fb)",
-              minWidth: "220px",
-            }}
-          >
-            <h6 className="mb-1">Total Expenses</h6>
-            <h3 className="fw-bold">₹{totalAmount.toLocaleString()}</h3>
-          </div>
-          <div className="mt-3">
-            <Link
-              to="/add-expense"
-              className="btn btn-light shadow-sm px-4 rounded-pill"
-            >
-              <i className="bi bi-plus-lg me-2"></i>Add New Expense
-            </Link>
-          </div>
-        </div>
-      </div> */}
       <div
         className="card shadow-sm border-0 text-center text-white mb-3 expenses-card"
         style={{
@@ -197,29 +168,13 @@ export default function ExpenseList() {
         }}
       >
         <div className="card-body p-3 p-md-4">
-          {/* Title */}
-          <h4 className="fw-bold mb-1 d-md-none" style={{ fontSize: "1.1rem" }}>
-            <i className="bi bi-car-front-fill me-1"></i> Expenses
-          </h4>
-          <h3 className="fw-bold mb-2 d-none d-md-block">
+          <h3 className="fw-bold mb-2">
             <i className="bi bi-car-front-fill me-2"></i> Car Expenses Dashboard
           </h3>
-
-          {/* Subtitle */}
-          <p
-            className="opacity-75 mb-3 d-none d-md-block"
-            style={{ fontSize: "0.95rem" }}
-          >
+          <p className="opacity-75 mb-3">
             Track and manage all your vehicle-related expenses
           </p>
-          <p
-            className="opacity-75 mb-3 d-md-none"
-            style={{ fontSize: "0.85rem" }}
-          >
-            Manage your car expenses
-          </p>
 
-          {/* Expenses Box */}
           <div
             className="p-2 p-md-3 rounded-3 mx-auto mb-3"
             style={{
@@ -228,82 +183,16 @@ export default function ExpenseList() {
               maxWidth: "260px",
             }}
           >
-            <h6 className="mb-1" style={{ fontSize: "0.9rem" }}>
-              Total
-            </h6>
-            <h4 className="fw-bold mb-0 fs-md-2">
-              ₹{totalAmount.toLocaleString()}
-            </h4>
+            <h6 className="mb-1">Total</h6>
+            <h4 className="fw-bold mb-0">₹{totalAmount.toLocaleString()}</h4>
           </div>
 
-          {/* Button */}
           <Link
             to="/add-expense"
-            className="btn btn-light shadow-sm w-100 w-md-auto rounded-pill px-4 py-2"
-            style={{ fontSize: "0.9rem" }}
+            className="btn btn-light shadow-sm rounded-pill px-4 py-2"
           >
             <i className="bi bi-plus-lg me-1"></i> Add Expense
           </Link>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="card shadow-sm border-0 mb-4">
-        <div className="card-body row g-3">
-          <div className="col-md-4 col-12">
-            <label className="form-label small">Category</label>
-            <select
-              className="form-select rounded-pill"
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="fuel">Fuel</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="insurance">Insurance</option>
-              <option value="repair">Repair</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div className="col-md-4 col-12">
-            <label className="form-label small">Quick Date Filter</label>
-            <select
-              className="form-select rounded-pill"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="lastWeek">Last Week</option>
-              <option value="lastMonth">Last Month</option>
-              <option value="lastYear">Last Year</option>
-            </select>
-          </div>
-          <div className="col-md-4 col-12">
-            <div className="row g-2">
-              <div className="col-6">
-                <label className="form-label small">From</label>
-                <input
-                  type="date"
-                  className="form-control rounded-pill"
-                  value={dateRange.from}
-                  onChange={(e) =>
-                    setDateRange({ ...dateRange, from: e.target.value })
-                  }
-                />
-              </div>
-              <div className="col-6">
-                <label className="form-label small">To</label>
-                <input
-                  type="date"
-                  className="form-control rounded-pill"
-                  value={dateRange.to}
-                  onChange={(e) =>
-                    setDateRange({ ...dateRange, to: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -346,9 +235,84 @@ export default function ExpenseList() {
                       day: "numeric",
                     })}
                   </small>
+
+                  {/* ✅ Handle both amount (old) & totalAmount (new) */}
                   <h3 className="fw-bold text-primary">
-                    ₹{exp.amount.toLocaleString()}
+                    ₹{(exp.totalAmount || exp.amount || 0).toLocaleString()}
                   </h3>
+
+                  {/* Partner breakdown */}
+                  {exp.partners && exp.partners.length > 0 && (
+                    <div className="mt-3">
+                      <h6 className="fw-bold text-muted">Partners</h6>
+                      {console.log(exp.partners)}
+                      {(() => {
+                        const allEqual =
+                          exp.partners.length > 1 &&
+                          exp.partners.every(
+                            (p) =>
+                              p.sharePercentage ===
+                              exp.partners[0].sharePercentage
+                          );
+
+                        if (allEqual) {
+                          // ✅ Same share → show all names with share %
+                          const names = exp.partners.map(
+                            (p) => p.partnerId?.name || "Partner"
+                          );
+                          const share = exp.partners[0].sharePercentage;
+                          const amountEach = exp.partners[0].amount;
+
+                          return (
+                            <p className="small mb-1">
+                              <strong>{names.join(", ")}</strong> <br />
+                              <span className="text-muted">
+                                ₹{amountEach} each ({share}% share)
+                              </span>
+                            </p>
+                          );
+                        } else {
+                          // ❌ Different share → separate lines
+                          return (
+                            <ul className="list-unstyled small mb-0">
+                              {exp.partners.map((p) => {
+                                return (
+                                  <li
+                                    key={p.partnerId?._id || p.partnerId}
+                                    className="d-flex align-items-center justify-content-between border-bottom py-1"
+                                  >
+                                    <div>
+                                      <strong>
+                                        {p.partnerId?.name || "Partner"}
+                                      </strong>{" "}
+                                      <span className="text-muted">
+                                        ({p.sharePercentage}%)
+                                      </span>
+                                      <div className="text-muted">
+                                        ₹{p.amount}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      {p.paid ? (
+                                        <span className="badge bg-success">
+                                          Paid
+                                        </span>
+                                      ) : (
+                                        <span className="badge bg-warning text-dark">
+                                          Pending
+                                        </span>
+                                      )}
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          );
+                        }
+                      })()}
+                    </div>
+                  )}
+
                   <p className="text-muted small mt-2">
                     {exp.notes || "No notes provided"}
                   </p>
@@ -385,15 +349,6 @@ export default function ExpenseList() {
           <p className="text-secondary">No expenses match your filters.</p>
         </div>
       )}
-
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .expense-card { transition: transform 0.3s ease; }
-        .expense-card:hover { transform: translateY(-8px); }
-      `}</style>
     </div>
   );
 }
