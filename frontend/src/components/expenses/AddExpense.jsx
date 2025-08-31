@@ -23,7 +23,9 @@ const AddExpense = () => {
   useEffect(() => {
     const fetchCars = async () => {
       try {
-        const carsRes = await axios.get("http://localhost:5000/api/cars");
+        const carsRes = await axios.get(
+          "https://uss-car-manager-f0gv.onrender.com/api/cars"
+        );
         setCars(carsRes.data);
       } catch (err) {
         console.error("Error fetching cars:", err);
@@ -38,7 +40,7 @@ const AddExpense = () => {
       if (!expense.car) return;
       try {
         const partnersRes = await axios.get(
-          `http://localhost:5000/api/partners/car/${expense.car}`
+          `https://uss-car-manager-f0gv.onrender.com/api/partners/car/${expense.car}`
         );
         console.log(partnersRes);
 
@@ -91,20 +93,23 @@ const AddExpense = () => {
       expense.category === "Others" ? expense.customCategory : expense.category;
 
     try {
-      await axios.post("http://localhost:5000/api/expenses", {
-        car: expense.car,
-        title: expense.title,
-        type: expense.type,
-        date: expense.date,
-        category: finalCategory,
-        totalAmount: expense.totalAmount,
-        notes: expense.notes,
-        partners: expense.partners.map((p) => ({
-          partnerId: p.partnerId,
-          amount: Number(p.amount) || 0,
-          paid: p.paid,
-        })),
-      });
+      await axios.post(
+        "https://uss-car-manager-f0gv.onrender.com/api/expenses",
+        {
+          car: expense.car,
+          title: expense.title,
+          type: expense.type,
+          date: expense.date,
+          category: finalCategory,
+          totalAmount: expense.totalAmount,
+          notes: expense.notes,
+          partners: expense.partners.map((p) => ({
+            partnerId: p.partnerId,
+            amount: Number(p.amount) || 0,
+            paid: p.paid,
+          })),
+        }
+      );
       navigate(`/expenses/${expense.car}`);
     } catch (err) {
       console.error("Error adding expense:", err);

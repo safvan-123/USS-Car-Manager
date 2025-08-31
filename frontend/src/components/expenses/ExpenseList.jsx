@@ -22,7 +22,7 @@ export default function ExpenseList() {
       try {
         setLoading(true);
         const res = await axios.get(
-          `http://localhost:5000/api/expenses/car/${carId}`
+          `https://uss-car-manager-f0gv.onrender.com/api/expenses/car/${carId}`
         );
 
         setExpenses(res.data);
@@ -106,7 +106,9 @@ export default function ExpenseList() {
 
     try {
       setDeleting(expenseId);
-      await axios.delete(`http://localhost:5000/api/expenses/${expenseId}`);
+      await axios.delete(
+        `https://uss-car-manager-f0gv.onrender.com/api/expenses/${expenseId}`
+      );
       const updatedExpenses = expenses.filter((exp) => exp._id !== expenseId);
       setExpenses(updatedExpenses);
       Swal.fire("Deleted!", "Expense has been deleted.", "success");

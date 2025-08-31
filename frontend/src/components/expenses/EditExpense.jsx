@@ -25,7 +25,7 @@
 //   useEffect(() => {
 //     const fetchCars = async () => {
 //       try {
-//         const res = await axios.get("http://localhost:5000/api/cars");
+//         const res = await axios.get("http:localhost:5000/api/cars");
 //         setCars(res.data);
 //       } catch (err) {
 //         console.error("Error fetching cars:", err);
@@ -469,7 +469,9 @@ const EditExpense = () => {
   useEffect(() => {
     const fetchCars = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/cars");
+        const res = await axios.get(
+          "https://uss-car-manager-f0gv.onrender.com/api/cars"
+        );
         setCars(res.data);
       } catch (err) {
         console.error("Error fetching cars:", err);
@@ -483,7 +485,9 @@ const EditExpense = () => {
     const fetchExpense = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`http://localhost:5000/api/expenses/${id}`);
+        const res = await axios.get(
+          `https://uss-car-manager-f0gv.onrender.com/api/expenses/${id}`
+        );
         const exp = res.data;
 
         // Handle old docs that used `amount` instead of `totalAmount`
@@ -541,7 +545,7 @@ const EditExpense = () => {
       if (!expense.car) return;
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/partners/car/${expense.car}`
+          `https://uss-car-manager-f0gv.onrender.com/api/partners/car/${expense.car}`
         );
 
         const partnerState = res.data.map((p) => {
@@ -612,20 +616,23 @@ const EditExpense = () => {
       expense.category === "Others" ? expense.customCategory : expense.category;
 
     try {
-      await axios.put(`http://localhost:5000/api/expenses/${id}`, {
-        car: expense.car,
-        title: expense.title,
-        type: expense.type,
-        date: expense.date,
-        category: finalCategory,
-        totalAmount: Number(expense.totalAmount) || 0,
-        notes: expense.notes,
-        partners: expense.partners.map((p) => ({
-          partnerId: p.partnerId,
-          amount: Number(p.amount) || 0,
-          paid: !!p.paid,
-        })),
-      });
+      await axios.put(
+        `https://uss-car-manager-f0gv.onrender.com/api/expenses/${id}`,
+        {
+          car: expense.car,
+          title: expense.title,
+          type: expense.type,
+          date: expense.date,
+          category: finalCategory,
+          totalAmount: Number(expense.totalAmount) || 0,
+          notes: expense.notes,
+          partners: expense.partners.map((p) => ({
+            partnerId: p.partnerId,
+            amount: Number(p.amount) || 0,
+            paid: !!p.paid,
+          })),
+        }
+      );
       navigate(`/expenses/${expense.car}`);
     } catch (err) {
       console.error("Error updating expense:", err);
