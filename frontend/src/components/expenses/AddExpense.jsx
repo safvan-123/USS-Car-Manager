@@ -201,7 +201,7 @@ const AddExpense = () => {
                   </div>
 
                   {/* Title */}
-                  <div className="col-md-6 col-12">
+                  {/* <div className="col-md-6 col-12">
                     <label className="form-label fw-semibold">
                       <i className="bi bi-pencil-square me-2 text-primary"></i>
                       Title
@@ -214,7 +214,7 @@ const AddExpense = () => {
                       onChange={handleChange}
                       required
                     />
-                  </div>
+                  </div> */}
 
                   {/* Date */}
                   <div className="col-md-6 col-12">

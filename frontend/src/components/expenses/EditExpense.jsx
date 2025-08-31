@@ -21,11 +21,13 @@
 //   const [saving, setSaving] = useState(false);
 //   const navigate = useNavigate();
 
-//   // Fetch cars
+//   // fetch cars
 //   useEffect(() => {
 //     const fetchCars = async () => {
 //       try {
-//         const res = await axios.get("http:localhost:5000/api/cars");
+//         const res = await axios.get(
+//           "https://uss-car-manager-f0gv.onrender.com/api/cars"
+//         );
 //         setCars(res.data);
 //       } catch (err) {
 //         console.error("Error fetching cars:", err);
@@ -34,16 +36,18 @@
 //     fetchCars();
 //   }, []);
 
-//   // Fetch expense details
+//   // fetch expense details
 //   useEffect(() => {
 //     const fetchExpense = async () => {
 //       try {
 //         setLoading(true);
-//         const res = await axios.get(`http://localhost:5000/api/expenses/${id}`);
+//         const res = await axios.get(
+//           `https://uss-car-manager-f0gv.onrender.com/api/expenses/${id}`
+//         );
 //         const exp = res.data;
 
 //         // Handle old docs that used `amount` instead of `totalAmount`
-//         const safeTotal = exp?.totalAmount ?? exp?.amount ?? 0; // number or 0
+//         const safeTotal = exp?.totalAmount ?? exp?.amount ?? 0;
 
 //         const baseCategoryList = [
 //           "Fuel",
@@ -61,14 +65,14 @@
 //           date: exp.date ? exp.date.substring(0, 10) : "",
 //           category: isKnown ? exp.category : "Others",
 //           customCategory: isKnown ? "" : exp.category || "",
-//           totalAmount: String(safeTotal), // ensure input shows a value
+//           totalAmount: String(safeTotal),
 //           notes: exp.notes || "",
 //           partners: Array.isArray(exp.partners)
 //             ? exp.partners.map((p) => ({
 //                 partnerId: p.partnerId?._id || p.partnerId,
-//                 name: p.partnerId?.name || "", // may be filled after car partners load
+//                 name: p.partnerId?.name || "",
 //                 sharePercentage: p.partnerId?.sharePercentage ?? 0,
-//                 amount: p.amount ?? 0,
+//                 amount: Number(p.amount ?? 0),
 //                 paid: !!p.paid,
 //               }))
 //             : [],
@@ -82,13 +86,22 @@
 //     fetchExpense();
 //   }, [id]);
 
-//   // Fetch partners when car changes and merge with existing partner amounts
+//   // 🔹 recalc partner contributions based on total
+//   const recalcPartnerAmounts = (total, partnersList = expense.partners) => {
+//     return partnersList.map((p) => {
+//       const percentage = p.sharePercentage || 0;
+//       const calculatedAmount = Number(((total * percentage) / 100).toFixed(2));
+//       return { ...p, amount: calculatedAmount };
+//     });
+//   };
+
+//   // fetch partners when car changes
 //   useEffect(() => {
 //     const fetchPartners = async () => {
 //       if (!expense.car) return;
 //       try {
 //         const res = await axios.get(
-//           `http://localhost:5000/api/partners/car/${expense.car}`
+//           `https://uss-car-manager-f0gv.onrender.com/api/partners/car/${expense.car}`
 //         );
 
 //         const partnerState = res.data.map((p) => {
@@ -101,7 +114,15 @@
 //             partnerId: p._id,
 //             name: p.name,
 //             sharePercentage: p.sharePercentage ?? 0,
-//             amount: existing ? existing.amount : 0,
+//             amount: existing
+//               ? Number(existing.amount)
+//               : Number(
+//                   (
+//                     (Number(expense.totalAmount || 0) *
+//                       (p.sharePercentage ?? 0)) /
+//                     100
+//                   ).toFixed(2)
+//                 ),
 //             paid: existing ? !!existing.paid : false,
 //           };
 //         });
@@ -112,41 +133,24 @@
 //         console.error("Error fetching partners:", err);
 //       }
 //     };
-//     // We want to run this whenever the selected car changes.
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//     useEffect;
 //     fetchPartners();
 //     // eslint-disable-next-line react-hooks/exhaustive-deps
 //   }, [expense.car]);
 
-//   const recalcPartnerAmounts = (total) => {
-//     return expense.partners.map((p) => {
-//       const pct = Number(p.sharePercentage) || 0;
-//       const calculated = ((total * pct) / 100).toFixed(2);
-//       return { ...p, amount: calculated };
-//     });
-//   };
-
 //   const handleChange = (e) => {
 //     const { name, value } = e.target;
-
 //     if (name === "totalAmount") {
 //       const total = Number(value) || 0;
 //       const updatedPartners = recalcPartnerAmounts(total);
-//       setExpense((prev) => ({
-//         ...prev,
-//         totalAmount: value,
-//         partners: updatedPartners,
-//       }));
+//       setExpense({ ...expense, totalAmount: value, partners: updatedPartners });
 //     } else if (name === "category") {
-//       setExpense((prev) => ({
-//         ...prev,
+//       setExpense({
+//         ...expense,
 //         category: value,
-//         // clear customCategory when switching away from Others
-//         customCategory: value === "Others" ? prev.customCategory : "",
-//       }));
+//         customCategory: value === "Others" ? expense.customCategory : "",
+//       });
 //     } else {
-//       setExpense((prev) => ({ ...prev, [name]: value }));
+//       setExpense({ ...expense, [name]: value });
 //     }
 //   };
 
@@ -155,9 +159,9 @@
 //     if (field === "paid") {
 //       updatedPartners[index][field] = value.target.checked;
 //     } else {
-//       updatedPartners[index][field] = value;
+//       updatedPartners[index][field] = Number(value);
 //     }
-//     setExpense((prev) => ({ ...prev, partners: updatedPartners }));
+//     setExpense({ ...expense, partners: updatedPartners });
 //   };
 
 //   const handleSubmit = async (e) => {
@@ -168,20 +172,23 @@
 //       expense.category === "Others" ? expense.customCategory : expense.category;
 
 //     try {
-//       await axios.put(`http://localhost:5000/api/expenses/${id}`, {
-//         car: expense.car,
-//         title: expense.title,
-//         type: expense.type,
-//         date: expense.date,
-//         category: finalCategory,
-//         totalAmount: Number(expense.totalAmount) || 0, // ensure number
-//         notes: expense.notes,
-//         partners: expense.partners.map((p) => ({
-//           partnerId: p.partnerId,
-//           amount: Number(p.amount) || 0,
-//           paid: !!p.paid,
-//         })),
-//       });
+//       await axios.put(
+//         `https://uss-car-manager-f0gv.onrender.com/api/expenses/${id}`,
+//         {
+//           car: expense.car,
+//           title: expense.title,
+//           type: expense.type,
+//           date: expense.date,
+//           category: finalCategory,
+//           totalAmount: Number(expense.totalAmount) || 0,
+//           notes: expense.notes,
+//           partners: expense.partners.map((p) => ({
+//             partnerId: p.partnerId,
+//             amount: Number(p.amount) || 0,
+//             paid: !!p.paid,
+//           })),
+//         }
+//       );
 //       navigate(`/expenses/${expense.car}`);
 //     } catch (err) {
 //       console.error("Error updating expense:", err);
@@ -452,7 +459,7 @@ const EditExpense = () => {
   const [partners, setPartners] = useState([]);
   const [expense, setExpense] = useState({
     car: "",
-    title: "",
+    // title: "",
     type: "expense",
     date: "",
     category: "",
@@ -504,7 +511,7 @@ const EditExpense = () => {
 
         setExpense({
           car: exp.car?._id || "",
-          title: exp.title || "",
+          // title: exp.title || "",
           type: exp.type || "expense",
           date: exp.date ? exp.date.substring(0, 10) : "",
           category: isKnown ? exp.category : "Others",
@@ -598,10 +605,11 @@ const EditExpense = () => {
     }
   };
 
+  // ✅ FIXED: handle partner paid + amount update correctly
   const handlePartnerChange = (index, field, value) => {
     const updatedPartners = [...expense.partners];
     if (field === "paid") {
-      updatedPartners[index][field] = value.target.checked;
+      updatedPartners[index][field] = value; // value is true/false
     } else {
       updatedPartners[index][field] = Number(value);
     }
@@ -620,7 +628,7 @@ const EditExpense = () => {
         `https://uss-car-manager-f0gv.onrender.com/api/expenses/${id}`,
         {
           car: expense.car,
-          title: expense.title,
+          // title: expense.title,
           type: expense.type,
           date: expense.date,
           category: finalCategory,
@@ -708,7 +716,7 @@ const EditExpense = () => {
                   </div>
 
                   {/* Title */}
-                  <div className="col-md-6">
+                  {/* <div className="col-md-6">
                     <label className="form-label fw-semibold">Title</label>
                     <input
                       type="text"
@@ -718,7 +726,7 @@ const EditExpense = () => {
                       onChange={handleChange}
                       required
                     />
-                  </div>
+                  </div> */}
 
                   {/* Date */}
                   <div className="col-md-6">
@@ -835,7 +843,11 @@ const EditExpense = () => {
                                   className="form-check-input"
                                   checked={!!p.paid}
                                   onChange={(e) =>
-                                    handlePartnerChange(index, "paid", e)
+                                    handlePartnerChange(
+                                      index,
+                                      "paid",
+                                      e.target.checked
+                                    )
                                   }
                                 />
                               </td>

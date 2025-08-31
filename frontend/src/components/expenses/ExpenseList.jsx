@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 
 export default function ExpenseList() {
   const { carId } = useParams();
+  const location = useLocation();
   const [expenses, setExpenses] = useState([]);
   const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,31 +18,32 @@ export default function ExpenseList() {
   const [dateFilter, setDateFilter] = useState("all");
 
   // Fetch Expenses
+  const fetchExpenses = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `https://uss-car-manager-f0gv.onrender.com/api/expenses/car/${carId}`
+      );
+
+      setExpenses(res.data);
+      setFilteredExpenses(res.data);
+
+      const total = res.data.reduce(
+        (sum, exp) => sum + (exp.totalAmount || exp.amount || 0),
+        0
+      );
+      setTotalAmount(total);
+    } catch (err) {
+      console.error("Error fetching expenses:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔹 Refetch when carId OR location changes (so coming back from Edit reloads data)
   useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(
-          `https://uss-car-manager-f0gv.onrender.com/api/expenses/car/${carId}`
-        );
-
-        setExpenses(res.data);
-        setFilteredExpenses(res.data);
-
-        // ✅ Handle both old (amount) and new (totalAmount)
-        const total = res.data.reduce(
-          (sum, exp) => sum + (exp.totalAmount || exp.amount || 0),
-          0
-        );
-        setTotalAmount(total);
-      } catch (err) {
-        console.error("Error fetching expenses:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchExpenses();
-  }, [carId]);
+  }, [carId, location]);
 
   // Apply Filters
   useEffect(() => {
@@ -81,7 +83,6 @@ export default function ExpenseList() {
 
     setFilteredExpenses(filtered);
 
-    // ✅ Recalculate total for filtered results
     setTotalAmount(
       filtered.reduce(
         (sum, exp) => sum + (exp.totalAmount || exp.amount || 0),
@@ -238,80 +239,97 @@ export default function ExpenseList() {
                     })}
                   </small>
 
-                  {/* ✅ Handle both amount (old) & totalAmount (new) */}
                   <h3 className="fw-bold text-primary">
                     ₹{(exp.totalAmount || exp.amount || 0).toLocaleString()}
                   </h3>
 
                   {/* Partner breakdown */}
+                  {/* {exp.partners && exp.partners.length > 0 && (
+                    <div className="mt-3">
+                      <h6 className="fw-bold text-muted">Partners</h6>
+                      <ul className="list-unstyled small mb-0">
+                        {exp.partners.map((p) => {
+                          const sharePercentage =
+                            exp.totalAmount > 0
+                              ? ((p.amount / exp.totalAmount) * 100).toFixed(1)
+                              : 0;
+
+                          return (
+                            <li
+                              key={p.partnerId?._id || p.partnerId}
+                              className="d-flex align-items-center justify-content-between border-bottom py-1"
+                            >
+                              <div>
+                                <strong>
+                                  {p.partnerId?.name || "Partner"}
+                                </strong>{" "}
+                                <span className="text-muted">
+                                  ({sharePercentage}%)
+                                </span>
+                                <div className="text-muted">₹{p.amount}</div>
+                              </div>
+                              <div>
+                                {p.paid ? (
+                                  <span className="badge bg-success">Paid</span>
+                                ) : (
+                                  <span className="badge bg-warning text-dark">
+                                    Pending
+                                  </span>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )} */}
+
                   {exp.partners && exp.partners.length > 0 && (
                     <div className="mt-3">
                       <h6 className="fw-bold text-muted">Partners</h6>
-                      {console.log(exp.partners)}
-                      {(() => {
-                        const allEqual =
-                          exp.partners.length > 1 &&
-                          exp.partners.every(
-                            (p) =>
-                              p.sharePercentage ===
-                              exp.partners[0].sharePercentage
-                          );
-
-                        if (allEqual) {
-                          // ✅ Same share → show all names with share %
-                          const names = exp.partners.map(
-                            (p) => p.partnerId?.name || "Partner"
-                          );
-                          const share = exp.partners[0].sharePercentage;
-                          const amountEach = exp.partners[0].amount;
+                      <ul className="list-unstyled small mb-0">
+                        {exp.partners.map((p) => {
+                          const sharePercentage =
+                            exp.totalAmount > 0
+                              ? ((p.amount / exp.totalAmount) * 100).toFixed(1)
+                              : 0;
 
                           return (
-                            <p className="small mb-1">
-                              <strong>{names.join(", ")}</strong> <br />
-                              <span className="text-muted">
-                                ₹{amountEach} each ({share}% share)
-                              </span>
-                            </p>
+                            <li
+                              key={p.partnerId?._id || p.partnerId}
+                              className="d-flex align-items-center justify-content-between border-bottom py-1"
+                            >
+                              <div>
+                                <strong>
+                                  {p.partnerId?.name || "Partner"}
+                                </strong>{" "}
+                                <span className="text-muted">
+                                  ({sharePercentage}%)
+                                </span>
+                                <div className="text-muted">
+                                  ₹{p.amount}{" "}
+                                  {p.paid ? (
+                                    <span className="text-success">(Paid)</span>
+                                  ) : (
+                                    <span className="text-warning">
+                                      (Pending)
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                {p.paid ? (
+                                  <span className="badge bg-success">Paid</span>
+                                ) : (
+                                  <span className="badge bg-warning text-dark">
+                                    Pending
+                                  </span>
+                                )}
+                              </div>
+                            </li>
                           );
-                        } else {
-                          // ❌ Different share → separate lines
-                          return (
-                            <ul className="list-unstyled small mb-0">
-                              {exp.partners.map((p) => {
-                                return (
-                                  <li
-                                    key={p.partnerId?._id || p.partnerId}
-                                    className="d-flex align-items-center justify-content-between border-bottom py-1"
-                                  >
-                                    <div>
-                                      <strong>
-                                        {p.partnerId?.name || "Partner"}
-                                      </strong>{" "}
-                                      <span className="text-muted">
-                                        ({p.sharePercentage}%)
-                                      </span>
-                                      <div className="text-muted">
-                                        ₹{p.amount}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      {p.paid ? (
-                                        <span className="badge bg-success">
-                                          Paid
-                                        </span>
-                                      ) : (
-                                        <span className="badge bg-warning text-dark">
-                                          Pending
-                                        </span>
-                                      )}
-                                    </div>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          );
-                        }
-                      })()}
+                        })}
+                      </ul>
                     </div>
                   )}
 
