@@ -1,82 +1,3 @@
-// const Expense = require("../models/Expense");
-
-// // Add expense
-// const addExpense = async (req, res) => {
-//   try {
-//     const expense = await Expense.create(req.body);
-//     res.status(201).json(expense);
-//   } catch (err) {
-//     res.status(400).json({ error: err.message });
-//   }
-// };
-
-// // Get all expenses (with car details)
-// const getExpenses = async (req, res) => {
-//   try {
-//     const expenses = await Expense.find()
-//       .populate("car")
-//       .populate("partners.partnerId"); // show car details
-//     res.json(expenses);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
-// // Get expenses for a specific car
-// const getExpensesByCar = async (req, res) => {
-//   try {
-//     const expenses = await Expense.find({ car: req.params.carId })
-//       .populate("car")
-//       .populate("partners.partnerId", "name");
-//     res.json(expenses);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-// const getExpenseById = async (req, res) => {
-//   try {
-//     const expense = await Expense.findById(req.params.id)
-//       .populate("car")
-//       .populate("partners.partnerId");
-//     if (!expense) return res.status(404).json({ message: "Expense not found" });
-//     res.json(expense);
-//   } catch (err) {
-//     res.status(500).json({ message: "Server error", error: err.message });
-//   }
-// };
-// // Update expense
-// const updateExpense = async (req, res) => {
-//   try {
-//     const expense = await Expense.findByIdAndUpdate(req.params.id, req.body, {
-//       new: true,
-//     });
-//     if (!expense) return res.status(404).json({ error: "Expense not found" });
-//     res.json(expense);
-//   } catch (err) {
-//     res.status(400).json({ error: err.message });
-//   }
-// };
-
-// // Delete expense
-// const deleteExpense = async (req, res) => {
-//   try {
-//     const expense = await Expense.findByIdAndDelete(req.params.id);
-//     if (!expense) return res.status(404).json({ error: "Expense not found" });
-//     res.json({ message: "Expense deleted successfully" });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
-// module.exports = {
-//   addExpense,
-//   getExpenses,
-//   getExpensesByCar,
-//   getExpenseById,
-//   updateExpense,
-//   deleteExpense,
-// };
-
 const Expense = require("../models/Expense");
 const Partner = require("../models/partnerModel");
 
@@ -153,64 +74,76 @@ const getExpenseById = async (req, res) => {
 };
 
 // ➝ Update expense
+
 // const updateExpense = async (req, res) => {
 //   try {
 //     const { totalAmount, car, ...rest } = req.body;
 
-//     let partnerShares = [];
+//     // Fetch the existing expense
+//     const existingExpense = await Expense.findById(req.params.id);
+//     if (!existingExpense) {
+//       return res.status(404).json({ error: "Expense not found" });
+//     }
 
-//     // if totalAmount & car given, recalc partner shares
-//     if (totalAmount && car) {
-//       const partners = await Partner.find({ car });
+//     let partnerShares = existingExpense.partners; // keep old if not recalculated
+
+//     // Determine values (fallback to existing if not provided)
+//     const newTotal =
+//       totalAmount !== undefined ? totalAmount : existingExpense.totalAmount;
+//     const newCar = car || existingExpense.car;
+
+//     // Recalculate partner shares if either totalAmount or car is changed
+//     if (totalAmount !== undefined || car) {
+//       const partners = await Partner.find({ car: newCar });
 
 //       partnerShares = partners.map((p) => ({
 //         partnerId: p._id,
 //         sharePercentage: p.sharePercentage,
-//         amount: (totalAmount * p.sharePercentage) / 100,
+//         amount: (newTotal * p.sharePercentage) / 100,
 //         paid: false,
 //       }));
 //     }
 
-//     const expense = await Expense.findByIdAndUpdate(
+//     // Update
+//     const updatedExpense = await Expense.findByIdAndUpdate(
 //       req.params.id,
 //       {
-//         totalAmount,
+//         totalAmount: newTotal,
+//         car: newCar,
 //         ...rest,
-//         ...(partnerShares.length > 0 && { partners: partnerShares }),
+//         partners: partnerShares,
 //       },
 //       { new: true }
 //     )
 //       .populate("car")
 //       .populate("partners.partnerId");
 
-//     if (!expense) return res.status(404).json({ error: "Expense not found" });
-
-//     res.json(expense);
+//     res.json(updatedExpense);
 //   } catch (err) {
 //     res.status(400).json({ error: err.message });
 //   }
 // };
+
 const updateExpense = async (req, res) => {
   try {
-    const { totalAmount, car, ...rest } = req.body;
+    const { totalAmount, car, partners: incomingPartners, ...rest } = req.body;
 
-    // Fetch the existing expense
     const existingExpense = await Expense.findById(req.params.id);
     if (!existingExpense) {
       return res.status(404).json({ error: "Expense not found" });
     }
 
-    let partnerShares = existingExpense.partners; // keep old if not recalculated
-
-    // Determine values (fallback to existing if not provided)
+    let partnerShares = existingExpense.partners; // default keep old
     const newTotal =
       totalAmount !== undefined ? totalAmount : existingExpense.totalAmount;
     const newCar = car || existingExpense.car;
 
-    // Recalculate partner shares if either totalAmount or car is changed
-    if (totalAmount !== undefined || car) {
+    if (incomingPartners && incomingPartners.length > 0) {
+      // ✅ Use frontend’s updated partners (manual edits)
+      partnerShares = incomingPartners;
+    } else if (totalAmount !== undefined || car) {
+      // ✅ Otherwise recalc shares
       const partners = await Partner.find({ car: newCar });
-
       partnerShares = partners.map((p) => ({
         partnerId: p._id,
         sharePercentage: p.sharePercentage,
@@ -219,7 +152,6 @@ const updateExpense = async (req, res) => {
       }));
     }
 
-    // Update
     const updatedExpense = await Expense.findByIdAndUpdate(
       req.params.id,
       {
