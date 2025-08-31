@@ -2,26 +2,68 @@ const Expense = require("../models/Expense");
 const Partner = require("../models/partnerModel");
 
 // ➝ Add expense
+// const addExpense = async (req, res) => {
+//   try {
+//     const { car, totalAmount, ...rest } = req.body;
+
+//     // fetch partners of this car
+//     const partners = await Partner.find({ car });
+
+//     if (!partners || partners.length === 0) {
+//       return res
+//         .status(400)
+//         .json({ message: "No partners found for this car" });
+//     }
+
+//     // calculate each partner's share
+//     const partnerShares = partners.map((p) => ({
+//       partnerId: p._id,
+//       sharePercentage: p.sharePercentage,
+//       amount: (totalAmount * p.sharePercentage) / 100,
+//       paid: false,
+//     }));
+
+//     const expense = await Expense.create({
+//       car,
+//       totalAmount,
+//       ...rest,
+//       partners: partnerShares,
+//     });
+
+//     res.status(201).json(expense);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// };
 const addExpense = async (req, res) => {
   try {
-    const { car, totalAmount, ...rest } = req.body;
+    const { car, totalAmount, partners: frontendPartners, ...rest } = req.body;
 
-    // fetch partners of this car
-    const partners = await Partner.find({ car });
+    let partnerShares = [];
 
-    if (!partners || partners.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "No partners found for this car" });
+    if (frontendPartners && frontendPartners.length > 0) {
+      // Use frontend values (amount + paid)
+      partnerShares = frontendPartners.map((p) => ({
+        partnerId: p.partnerId,
+        sharePercentage: p.sharePercentage,
+        amount: p.amount,
+        paid: p.paid ?? false, // keep frontend paid status or default false
+      }));
+    } else {
+      // fallback: calculate from backend percentages
+      const partners = await Partner.find({ car });
+      if (!partners || partners.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "No partners found for this car" });
+      }
+      partnerShares = partners.map((p) => ({
+        partnerId: p._id,
+        sharePercentage: p.sharePercentage,
+        amount: (totalAmount * p.sharePercentage) / 100,
+        paid: false,
+      }));
     }
-
-    // calculate each partner's share
-    const partnerShares = partners.map((p) => ({
-      partnerId: p._id,
-      sharePercentage: p.sharePercentage,
-      amount: (totalAmount * p.sharePercentage) / 100,
-      paid: false,
-    }));
 
     const expense = await Expense.create({
       car,
