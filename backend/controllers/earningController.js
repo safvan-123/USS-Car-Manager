@@ -10,10 +10,12 @@ const addEarning = async (req, res) => {
   }
 };
 
-// Get all earnings (with car details)
+// Get all earnings
 const getEarnings = async (req, res) => {
   try {
-    const earnings = await Earning.find().populate("car");
+    const earnings = await Earning.find()
+      .populate("car")
+      .populate("partners.partnerId");
     res.json(earnings);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -22,22 +24,22 @@ const getEarnings = async (req, res) => {
 
 // Get earnings for a specific car
 const getEarningsByCar = async (req, res) => {
-  console.log(req.params.carId);
-
   try {
-    const earnings = await Earning.find({ car: req.params.carId }).populate(
-      "car"
-    );
+    const earnings = await Earning.find({ car: req.params.carId })
+      .populate("car")
+      .populate("partners.partnerId", "name");
     res.json(earnings);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// Get single earning by ID
+// Get single earning
 const getEarningById = async (req, res) => {
   try {
-    const earning = await Earning.findById(req.params.id).populate("car");
+    const earning = await Earning.findById(req.params.id)
+      .populate("car")
+      .populate("partners.partnerId", "name");
     if (!earning) return res.status(404).json({ message: "Earning not found" });
     res.json(earning);
   } catch (err) {
@@ -50,7 +52,9 @@ const updateEarning = async (req, res) => {
   try {
     const earning = await Earning.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
-    });
+    })
+      .populate("car")
+      .populate("partners.partnerId", "name");
     if (!earning) return res.status(404).json({ error: "Earning not found" });
     res.json(earning);
   } catch (err) {
