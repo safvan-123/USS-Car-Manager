@@ -295,7 +295,7 @@ export default function EarningList() {
                         <td>
                           {p.paid ? (
                             <span className="badge bg-success px-3 py-2">
-                              Paid
+                              Received
                             </span>
                           ) : (
                             <span className="badge bg-warning text-dark px-3 py-2">
@@ -406,7 +406,7 @@ export default function EarningList() {
                                     {p.paid ? (
                                       <span className="text-success">
                                         {" "}
-                                        (Paid)
+                                        (Received)
                                       </span>
                                     ) : (
                                       <span className="text-warning">
@@ -419,7 +419,7 @@ export default function EarningList() {
                                 <div>
                                   {p.paid ? (
                                     <span className="badge bg-success">
-                                      Paid
+                                      Received
                                     </span>
                                   ) : (
                                     <span className="badge bg-warning text-dark">

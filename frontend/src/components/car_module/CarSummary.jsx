@@ -89,7 +89,11 @@ export default function CarSummary() {
     setFilteredEarnings(filteredEarn);
     console.log(filteredEarn);
     console.log(filteredExp);
-    const totalExp = filteredExp.reduce((s, e) => s + Number(e.amount || 0), 0);
+
+    const totalExp = filteredExp.reduce(
+      (s, e) => s + Number(e.amount || e.totalAmount || 0),
+      0 // ✅ This is the required initial value
+    );
 
     const totalEarn = filteredEarn.reduce((s, e) => s + e.amount, 0);
 
@@ -691,7 +695,6 @@ export default function CarSummary() {
                     </span>
                   </h5>
                 </div>
-                {console.log(filteredExpenses)}
                 <div style={{ maxHeight: "400px", overflowY: "auto" }}>
                   {filteredExpenses.length > 0 ? (
                     <div className="list-group list-group-flush">

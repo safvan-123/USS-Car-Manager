@@ -290,7 +290,7 @@ const AddExpense = () => {
                           <strong className={p.paid ? "text-success" : ""}>
                             {p.name}
                           </strong>
-                          <span className="text-muted ms-2">({p.share}%)</span>
+                          {/* <span className="text-muted ms-2">({p.share}%)</span> */}
                           <br />
                           <small
                             className={`fw-semibold ${
