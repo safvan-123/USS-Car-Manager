@@ -395,9 +395,9 @@ export default function EarningList() {
                                   <strong>
                                     {p.partnerId?.name || "Partner"}
                                   </strong>{" "}
-                                  <span className="text-muted">
+                                  {/* <span className="text-muted">
                                     ({sharePercentage}%)
-                                  </span>
+                                  </span> */}
                                   <div className="text-muted">
                                     ₹
                                     {Math.round(

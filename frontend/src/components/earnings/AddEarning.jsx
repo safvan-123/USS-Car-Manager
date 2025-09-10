@@ -247,7 +247,7 @@ const AddEarning = () => {
                     disabled={paidCount === totalPartners}
                   >
                     <i className="bi bi-check-all me-1"></i>
-                    Mark All Paid
+                    Mark All Received
                   </button>
                   <button
                     type="button"
@@ -256,7 +256,7 @@ const AddEarning = () => {
                     disabled={paidCount === 0}
                   >
                     <i className="bi bi-x-circle me-1"></i>
-                    Mark All Unpaid
+                    Mark All not received
                   </button>
                 </div>
               </div>
@@ -286,14 +286,14 @@ const AddEarning = () => {
                           <strong className={p.paid ? "text-success" : ""}>
                             {p.name}
                           </strong>
-                          <span className="text-muted ms-2">({p.share}%)</span>
+                          {/* <span className="text-muted ms-2">({p.share}%)</span> */}
                           <br />
                           <small
                             className={`fw-semibold ${
                               p.paid ? "text-success" : "text-muted"
                             }`}
                           >
-                            Payable: ₹{p.amount.toLocaleString()}
+                            To Receive: ₹{p.amount.toLocaleString()}
                           </small>
                         </div>
                       </div>
@@ -303,7 +303,7 @@ const AddEarning = () => {
                         {p.paid ? (
                           <span className="badge bg-success rounded-pill px-3 py-2">
                             <i className="bi bi-check-circle me-1"></i>
-                            Paid
+                            Received
                           </span>
                         ) : (
                           <span className="badge bg-warning text-dark rounded-pill px-3 py-2">

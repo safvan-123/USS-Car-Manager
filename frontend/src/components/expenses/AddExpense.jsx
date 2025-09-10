@@ -290,15 +290,31 @@ const AddExpense = () => {
                           <strong className={p.paid ? "text-success" : ""}>
                             {p.name}
                           </strong>
-                          {/* <span className="text-muted ms-2">({p.share}%)</span> */}
                           <br />
-                          <small
-                            className={`fw-semibold ${
-                              p.paid ? "text-success" : "text-muted"
-                            }`}
-                          >
-                            Payable: ₹{p.amount.toLocaleString()}
-                          </small>
+                          <div className="d-flex align-items-center gap-2 mt-1">
+                            <small className="fw-semibold text-muted">
+                              Payable:
+                            </small>
+                            <input
+                              type="number"
+                              className={`form-control form-control-sm w-auto ${
+                                p.paid ? "text-success border-success" : ""
+                              }`}
+                              value={p.amount}
+                              onChange={(e) =>
+                                setPartnerInputs((prev) =>
+                                  prev.map((item) =>
+                                    item.partnerId === p.partnerId
+                                      ? {
+                                          ...item,
+                                          amount: Number(e.target.value),
+                                        }
+                                      : item
+                                  )
+                                )
+                              }
+                            />
+                          </div>
                         </div>
                       </div>
 
