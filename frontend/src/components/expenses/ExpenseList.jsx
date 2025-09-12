@@ -56,10 +56,6 @@ export default function ExpenseList() {
     const currentPaid = partnerObj?.paid === true;
     const newPaid = !currentPaid;
 
-    console.log(
-      `Toggling partner ${partnerId} on expense ${expenseId}: ${currentPaid} -> ${newPaid}`
-    );
-
     // Optimistic UI update: update the source 'expenses'
     setExpenses((prev) =>
       prev.map((exp) =>
@@ -319,32 +315,101 @@ export default function ExpenseList() {
             </div>
           </div>
 
-          <div className="col-lg-6">
-            <div className="card shadow-sm border-0 h-100">
+          <div className="mt-5">
+            <h5 className="fw-bold mb-3">
+              Partner-wise Expense Pending Summary
+            </h5>
+            <div className="card border-0 shadow-sm">
               <div className="card-body">
-                <h5 className="fw-bold mb-3 text-warning">
-                  Partner-wise Pending Summary
-                </h5>
-                {Object.values(partnerPendings).some((p) => p.amount > 0) ? (
-                  <ul className="list-group list-group-flush">
-                    {Object.values(partnerPendings).map(
-                      (p, i) =>
-                        p.amount > 0 && (
-                          <li
-                            key={i}
-                            className="list-group-item d-flex justify-content-between align-items-center"
-                          >
-                            <span>{p.name}</span>
-                            <span className="fw-bold text-warning">
-                              ₹{Math.round(p.amount).toLocaleString()}
-                            </span>
+                {(() => {
+                  const summary = {};
+
+                  // Collect pending per partner
+                  filteredExpenses.forEach((exp) => {
+                    const expectedShare =
+                      exp.totalAmount && exp.partners?.length > 0
+                        ? exp.totalAmount / exp.partners.length
+                        : 0;
+
+                    exp.partners?.forEach((p) => {
+                      const paidAmount = p.amount || 0;
+                      const pending =
+                        paidAmount < expectedShare
+                          ? expectedShare - paidAmount
+                          : 0;
+
+                      if (pending > 0) {
+                        const partnerName = p.partnerId?.name || "Partner";
+
+                        if (!summary[partnerName]) {
+                          summary[partnerName] = {
+                            totalPending: 0,
+                            details: [],
+                          };
+                        }
+
+                        // Add this expense’s pending
+                        if (pending >= 1) {
+                          summary[partnerName].totalPending += pending;
+                          summary[partnerName].details.push({
+                            expenseCategory: exp.category,
+                            pendingAmount: pending,
+                          });
+                        }
+                      }
+                    });
+                  });
+
+                  // Render result
+                  if (Object.keys(summary).length > 0) {
+                    return (
+                      <ul className="list-unstyled mb-0">
+                        {Object.entries(summary).map(([partner, data]) => (
+                          <li key={partner} className="border-bottom py-2">
+                            <div className="d-flex justify-content-between">
+                              {data.totalPending > 4 && (
+                                <>
+                                  {" "}
+                                  <strong>{partner}</strong>
+                                  <span className="fw-bold text-danger">
+                                    Total Pending: ₹
+                                    {data.totalPending.toFixed(1)}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            {/* Show breakdown per expense */}
+                            <ul className="list-unstyled small ms-3 mt-1">
+                              {data.details.map((d, idx) => {
+                                return (
+                                  <>
+                                    {d.pendingAmount > 4 && (
+                                      <li
+                                        key={idx}
+                                        className="d-flex justify-content-between"
+                                      >
+                                        <span>{d.expenseCategory}</span>
+                                        <span className="text-warning">
+                                          ₹{d.pendingAmount.toFixed(1)}
+                                        </span>
+                                      </li>
+                                    )}
+                                  </>
+                                );
+                              })}
+                            </ul>
                           </li>
-                        )
-                    )}
-                  </ul>
-                ) : (
-                  <p className="text-success mb-0">🎉 All settled!</p>
-                )}
+                        ))}
+                      </ul>
+                    );
+                  } else {
+                    return (
+                      <p className="text-success mb-0">
+                        All partners are settled 🎉
+                      </p>
+                    );
+                  }
+                })()}
               </div>
             </div>
           </div>
@@ -418,7 +483,7 @@ export default function ExpenseList() {
                             : 0;
 
                         const paidAmount = p.amount || 0;
-                        const isPending = !p.paid && paidAmount < expectedShare;
+                        const isPending = paidAmount < expectedShare - 5;
 
                         const partnerId = p.partnerId?._id || p.partnerId;
 
@@ -451,7 +516,7 @@ export default function ExpenseList() {
                               </span>
                             </div>
 
-                            {/* Right: Toggle Badge (clickable) */}
+                            {/* Right: Status Badge */}
                             <div
                               role="button"
                               style={{ cursor: "pointer" }}
@@ -460,12 +525,12 @@ export default function ExpenseList() {
                               }
                               title="Click to toggle paid/pending"
                             >
-                              {p.paid ? (
-                                <span className="badge bg-success">Paid</span>
-                              ) : (
+                              {isPending ? (
                                 <span className="badge bg-warning text-dark">
                                   Pending
                                 </span>
+                              ) : (
+                                <span className="badge bg-success">Paid</span>
                               )}
                             </div>
                           </li>
@@ -510,48 +575,81 @@ export default function ExpenseList() {
             <h5 className="fw-bold mb-3">Partner-wise Pending Summary</h5>
             <div className="card border-0 shadow-sm">
               <div className="card-body">
-                <ul className="list-unstyled mb-0">
-                  {(() => {
-                    const summary = {};
-                    filteredExpenses.forEach((exp) => {
-                      const expectedShare =
-                        exp.totalAmount > 0 && exp.partners.length > 0
-                          ? exp.totalAmount / exp.partners.length
+                {(() => {
+                  const summary = {};
+
+                  // Collect pending per partner
+                  filteredExpenses.forEach((exp) => {
+                    const expectedShare =
+                      exp.totalAmount && exp.partners?.length > 0
+                        ? exp.totalAmount / exp.partners.length
+                        : 0;
+
+                    exp.partners?.forEach((p) => {
+                      const paidAmount = p.amount || 0;
+                      const pending =
+                        paidAmount < expectedShare
+                          ? expectedShare - paidAmount
                           : 0;
 
-                      exp.partners.forEach((p) => {
-                        const paidAmount = p.amount || 0;
-                        const pending =
-                          !p.paid && paidAmount < expectedShare
-                            ? expectedShare - paidAmount
-                            : 0;
-                        if (pending > 0) {
-                          const partnerName = p.partnerId?.name || "Partner";
-                          if (!summary[partnerName]) summary[partnerName] = 0;
-                          summary[partnerName] += pending;
-                        }
-                      });
-                    });
+                      if (pending > 0) {
+                        const partnerName = p.partnerId?.name || "Partner";
 
-                    return Object.keys(summary).length > 0 ? (
-                      Object.entries(summary).map(([name, amount]) => (
-                        <li
-                          key={name}
-                          className="d-flex justify-content-between border-bottom py-2"
-                        >
-                          <span>{name}</span>
-                          <span className="fw-bold text-danger">
-                            Pending: ₹{amount.toFixed(2)}
-                          </span>
-                        </li>
-                      ))
-                    ) : (
+                        if (!summary[partnerName]) {
+                          summary[partnerName] = {
+                            totalPending: 0,
+                            details: [],
+                          };
+                        }
+
+                        // Add this expense’s pending
+                        summary[partnerName].totalPending += pending;
+                        summary[partnerName].details.push({
+                          expenseCategory: exp.category,
+                          pendingAmount: pending,
+                        });
+                      }
+                    });
+                  });
+
+                  // Render result
+                  if (Object.keys(summary).length > 0) {
+                    return (
+                      <ul className="list-unstyled mb-0">
+                        {Object.entries(summary).map(([partner, data]) => (
+                          <li key={partner} className="border-bottom py-2">
+                            <div className="d-flex justify-content-between">
+                              <strong>{partner}</strong>
+                              <span className="fw-bold text-danger">
+                                Total Pending: ₹{data.totalPending.toFixed(2)}
+                              </span>
+                            </div>
+                            {/* Show breakdown per expense */}
+                            <ul className="list-unstyled small ms-3 mt-1">
+                              {data.details.map((d, idx) => (
+                                <li
+                                  key={idx}
+                                  className="d-flex justify-content-between"
+                                >
+                                  <span>{d.expenseCategory}</span>
+                                  <span className="text-warning">
+                                    ₹{d.pendingAmount.toFixed(2)}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </li>
+                        ))}
+                      </ul>
+                    );
+                  } else {
+                    return (
                       <p className="text-success mb-0">
                         All partners are settled 🎉
                       </p>
                     );
-                  })()}
-                </ul>
+                  }
+                })()}
               </div>
             </div>
           </div>
