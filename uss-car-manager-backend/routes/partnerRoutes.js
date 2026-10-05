@@ -1,0 +1,10 @@
+const router = require('express').Router();
+const c = require('../controllers/partnerController');
+const { roles } = require('../middleware/auth');
+router.get('/', c.getAllPartners);
+router.get('/car/:carId', c.getPartnersByCar);
+router.get('/:id', c.getPartnerById);
+router.post('/', roles('admin'), c.createPartner);
+router.put('/:id', roles('admin'), c.updatePartner);
+router.delete('/:id', roles('admin'), c.deletePartner);
+module.exports = router;

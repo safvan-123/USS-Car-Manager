@@ -1,0 +1,11 @@
+const router = require('express').Router();
+const c = require('../controllers/carController');
+const { roles } = require('../middleware/auth');
+const write = roles('admin', 'manager');
+router.get('/', c.getCars);
+router.get('/:id', c.getCarById);
+router.post('/', write, c.addCar);
+router.put('/:id', write, c.updateCar);
+router.delete('/:id', roles('admin'), c.deleteCar);
+router.post('/:id/restore', roles('admin'), c.restoreCar);
+module.exports = router;

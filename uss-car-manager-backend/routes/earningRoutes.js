@@ -1,0 +1,12 @@
+const router = require('express').Router();
+const c = require('../controllers/earningController');
+const { roles } = require('../middleware/auth');
+const write = roles('admin', 'manager');
+router.get('/', c.getEarnings);
+router.get('/car/:carId', c.getEarningsByCar);
+router.get('/:id', c.getEarningById);
+router.post('/', write, c.addEarning);
+router.put('/:id', write, c.updateEarning);
+router.delete('/:id', roles('admin'), c.deleteEarning);
+router.post('/:id/payment-correction', roles('admin'), c.correctPayment);
+module.exports = router;
