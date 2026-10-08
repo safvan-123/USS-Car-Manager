@@ -1,0 +1,9 @@
+import { money } from '../utils/format';
+import { sumMoney } from '../utils/finance';
+export default function MonthlyChart({ monthly = [] }) {
+  const rows = monthly.filter(r => /^\d{4}-\d{2}$/.test(r.month)).slice(-6);
+  const max = Math.max(1, ...rows.flatMap(r => [sumMoney([r.earnings, r.legacyIncome]), Number(r.expenses)]));
+  return <><div className="chart-legend"><span><i className="legend-income" />Income</span><span><i className="legend-expense" />Expenses</span></div>
+    {rows.length ? <div className="column-chart">{rows.map(r => { const income = sumMoney([r.earnings, r.legacyIncome]); return <div className="chart-month" key={r.month}><div className="chart-columns"><div className="chart-column income" style={{height: `${income / max * 100}%`}} tabIndex="0" aria-label={`${r.month} income ${money(income)}`}><span>{money(income)}</span></div><div className="chart-column expense" style={{height: `${Number(r.expenses) / max * 100}%`}} tabIndex="0" aria-label={`${r.month} expenses ${money(r.expenses)}`}><span>{money(r.expenses)}</span></div></div><small>{new Date(`${r.month}-01T12:00:00`).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })}</small></div>; })}</div> : <div className="empty-state"><h3>No transactions in this period</h3><p>Add an earning or expense to start your financial overview.</p></div>}
+    <details className="chart-data"><summary>View exact monthly figures</summary><div className="transaction-table-wrap"><table className="data-table"><thead><tr><th>Month</th><th className="right">Income</th><th className="right">Expenses</th><th className="right">Surplus</th></tr></thead><tbody>{monthly.map(r => <tr key={r.month}><td>{r.month}</td><td className="right">{money(sumMoney([r.earnings,r.legacyIncome]))}</td><td className="right">{money(r.expenses)}</td><td className="right">{money(sumMoney([r.earnings,r.legacyIncome,-Number(r.expenses)]))}</td></tr>)}</tbody></table></div></details></>;
+}
